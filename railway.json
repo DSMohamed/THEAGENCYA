@@ -1,7 +1,7 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm install discord.js"
+    "buildCommand": "npm rebuild better-sqlite3"
   },
   "deploy": {
     "restartPolicyType": "ON_FAILURE",
