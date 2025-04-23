@@ -4,6 +4,7 @@
   "main": "starter.js",
   "scripts": {
     "install": "npm install discord.js",
+    "postinstall": "npm rebuild better-sqlite3",
     "start": "node starter.js",
     "dev": "nodemon starter.js",
     "deploy": "node deploy-commands.js",
