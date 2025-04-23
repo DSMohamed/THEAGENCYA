@@ -1,7 +1,7 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm install --build-from-source"
+    "buildCommand": "npm install discord.js"
   },
   "deploy": {
     "restartPolicyType": "ON_FAILURE",
