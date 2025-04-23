@@ -66,10 +66,6 @@ app.use((req, res, next) => {
   res.setHeader("X-XSS-Protection", "1; mode=block");
 
   // API key authentication (optional for initial testing)
-  const apiKey = req.headers["x-api-key"];
-  if (process.env.API_KEY && (!apiKey || apiKey !== process.env.API_KEY)) {
-    return res.status(401).json({ error: "Unauthorized access" });
-  }
 
   next();
 });
