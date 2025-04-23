@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "starter.js",
   "scripts": {
-    "install": "npm install",
+    "install": "npm install discord.js",
     "start": "node starter.js",
     "dev": "nodemon starter.js",
     "deploy": "node deploy-commands.js",
