@@ -156,6 +156,11 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.get("/api/secret/ANONPO", (req, res) => {
+  res.json({
+    secret: "ZDRAW21",
+  });
+});
 // Add a test data endpoint for debugging
 app.get("/api/test", (req, res) => {
   res.json([
