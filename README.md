@@ -15,7 +15,7 @@ This repository contains a Discord bot with economy features and a website that 
 
 1. **Install dependencies**:
    ```bash
-   npm install
+   npm install discord
    ```
 
 2. **Configure .env file**:
