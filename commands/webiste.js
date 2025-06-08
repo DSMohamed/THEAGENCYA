@@ -8,7 +8,8 @@ const economy = require("../utils/economy");
 // Define your constants here
 const RULES_COLOR = "#fcba03"; // Example color
 const RULES_TITLE = "Official Website";
-const RULES_CONTENT = `Visit our official site at https://theagencybot.netlify.app/ \
+const RULES_CONTENT = `Visit our official site at https://theagencybot.netlify.app/ 
+
   Visit our official Discrod Server at https://discord.gg/3qQzrQ2YPw/`;
 
 const RULES_BANNER = "https://i.postimg.cc/J4FLmW7f/Untitled-1.jpg";
