@@ -2,8 +2,6 @@ require("dotenv").config();
 const fs = require("node:fs");
 const path = require("node:path");
 const { Client, Collection, Events, GatewayIntentBits } = require("discord.js");
-const express = require("express");
-const app = express();
 
 // Create a new client instance with necessary intents
 const client = new Client({
@@ -13,12 +11,6 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
   ],
-});
-
-const PORT = process.env.PORT || 3000;
-app.get("/", (req, res) => res.send("Bot is running!"));
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`HTTP server running on port ${PORT}`);
 });
 
 // Initialize commands collection
