@@ -188,7 +188,7 @@ module.exports = app;
 
 // Start the API server if this file is run directly
 if (require.main === module) {
-  const server = app.listen(PORT, () => {
+  const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`TheAgency API server running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
     console.log(`CORS: Allowing all origins`);
