@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const economy = require("../utils/economy");
 
 // 24 hours in milliseconds
-const COOLDOWN = 24 * 60 * 60 * 1000;
+const COOLDOWN = 12 * 60 * 60 * 1000;
 // Daily reward amount
 const REWARD = 500;
 
