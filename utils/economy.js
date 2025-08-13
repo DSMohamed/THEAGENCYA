@@ -222,6 +222,7 @@ class EconomyManager {
       hasToMillis: lastDaily && typeof lastDaily.toMillis === "function",
       hasSeconds: lastDaily && lastDaily.seconds,
       isNumber: typeof lastDaily === "number",
+      constructor: lastDaily ? lastDaily.constructor.name : "undefined",
     });
 
     // Handle both Firestore Timestamps and regular timestamps
@@ -249,6 +250,16 @@ class EconomyManager {
       // Alternative Firestore Timestamp format
       const millis = lastDaily._seconds * 1000;
       console.log(`[DEBUG] Converted _seconds to milliseconds:`, millis);
+      return millis;
+    } else if (
+      lastDaily &&
+      lastDaily.toDate &&
+      typeof lastDaily.toDate === "function"
+    ) {
+      // Another Firestore Timestamp format - convert to Date then to milliseconds
+      const date = lastDaily.toDate();
+      const millis = date.getTime();
+      console.log(`[DEBUG] Converted via toDate() to milliseconds:`, millis);
       return millis;
     }
 
