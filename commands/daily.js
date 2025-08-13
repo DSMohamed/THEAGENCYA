@@ -1,16 +1,30 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const economy = require("../utils/economy");
+const admin = require("firebase-admin");
 
-// 24 hours in milliseconds
+// 12 hours in milliseconds (matching web component)
 const COOLDOWN = 12 * 60 * 60 * 1000;
-// Daily reward amount - random between 1K to 3K
-const getRandomReward = () =>
-  Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
+
+// Helper function to format time remaining
+function formatTimeRemaining(milliseconds) {
+  const hours = Math.floor(milliseconds / (60 * 60 * 1000));
+  const minutes = Math.floor((milliseconds % (60 * 60 * 1000)) / (60 * 1000));
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours}h ${minutes}m`;
+  } else if (hours > 0) {
+    return `${hours}h`;
+  } else if (minutes > 0) {
+    return `${minutes}m`;
+  } else {
+    return "Less than 1 minute";
+  }
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("daily")
-    .setDescription("Claim your daily reward"),
+    .setDescription("Claim your daily reward (resets every 12 hours)"),
 
   async execute(interaction) {
     await interaction.deferReply();
@@ -22,52 +36,62 @@ module.exports = {
     // Check if user is on cooldown
     if (lastDaily && now - lastDaily < COOLDOWN) {
       const timeLeft = COOLDOWN - (now - lastDaily);
-      const hours = Math.floor(timeLeft / (60 * 60 * 1000));
-      const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-
-      // Format the last daily time in a readable format
-      const lastDailyDate = new Date(lastDaily);
-      const formattedLastDaily = lastDailyDate.toLocaleString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        second: "2-digit",
-        timeZoneName: "short",
-      });
+      const formattedTime = formatTimeRemaining(timeLeft);
 
       const embed = new EmbedBuilder()
         .setColor("#ff0000")
         .setTitle("Daily Reward - Cooldown")
         .setDescription(
-          `You've already claimed your daily reward!\n**Last claimed:** ${formattedLastDaily}\nCome back in **${hours}h ${minutes}m**.`
-        );
+          `You've already claimed your daily reward!\nCome back in **${formattedTime}**.`
+        )
+        .setFooter({ text: "Daily rewards reset every 12 hours" });
 
       return interaction.editReply({ embeds: [embed] });
     }
 
-    // Add reward and update last daily timestamp
-    const reward = getRandomReward();
-    const newBalance = await economy.addBalance(userId, reward);
-    await economy.setLastDaily(userId, now);
+    // Random daily reward between 1000-3000 (matching web component)
+    const dailyAmount = Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
+
+    // Add reward and update last daily timestamp using serverTimestamp for consistency
+    // This ensures compatibility with the web component which also uses serverTimestamp
+    const newBalance = await economy.addBalance(userId, dailyAmount);
+    await economy.setLastDaily(
+      userId,
+      admin.firestore.FieldValue.serverTimestamp()
+    );
 
     // Store the username in the database for the leaderboard
     await economy.storeUsername(userId, interaction.user.username);
 
     const embed = new EmbedBuilder()
       .setColor("#00ff00")
-      .setTitle("Daily Reward Claimed!")
+      .setTitle("🎉 Daily Reward Claimed!")
       .setDescription(
-        `You claimed your daily reward of ${economy.currency.symbol} ${reward} ${economy.currency.name}!`
+        `You claimed your daily reward of ${
+          economy.currency.symbol
+        } **${dailyAmount.toLocaleString()}** ${economy.currency.name}!`
       )
-      .addFields({
-        name: "New Balance",
-        value: `${economy.currency.symbol} ${newBalance.toLocaleString()} ${
-          economy.currency.name
-        }`,
-      })
-      .setTimestamp();
+      .addFields(
+        {
+          name: "💰 New Balance",
+          value: `${
+            economy.currency.symbol
+          } **${newBalance.toLocaleString()}** ${economy.currency.name}`,
+          inline: true,
+        },
+        {
+          name: "⏰ Reset Time",
+          value: "12 hours",
+          inline: true,
+        },
+        {
+          name: "🎯 Reward Type",
+          value: "Random (1000-3000 coins)",
+          inline: true,
+        }
+      )
+      .setTimestamp()
+      .setFooter({ text: "Daily rewards reset every 12 hours" });
 
     await interaction.editReply({ embeds: [embed] });
   },
