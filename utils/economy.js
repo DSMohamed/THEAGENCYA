@@ -1,4 +1,4 @@
-const db = require('./firebase');
+const db = require("./firebase");
 
 // Economy database operations
 class EconomyManager {
@@ -10,7 +10,14 @@ class EconomyManager {
   }
 
   // --- Welcome system methods ---
-  async setWelcomeConfig(guildId, channelId, title, subtitle, welcomeMessage, logoUrl) {
+  async setWelcomeConfig(
+    guildId,
+    channelId,
+    title,
+    subtitle,
+    welcomeMessage,
+    logoUrl
+  ) {
     const config = {
       channelId,
       title,
@@ -20,12 +27,12 @@ class EconomyManager {
       enabled: true,
       timestamp: Date.now(),
     };
-    await db.collection('welcome').doc(guildId).set(config);
+    await db.collection("welcome").doc(guildId).set(config);
     return config;
   }
 
   async getWelcomeConfig(guildId) {
-    const doc = await db.collection('welcome').doc(guildId).get();
+    const doc = await db.collection("welcome").doc(guildId).get();
     return doc.exists ? doc.data() : null;
   }
 
@@ -33,13 +40,13 @@ class EconomyManager {
     const config = await this.getWelcomeConfig(guildId);
     if (!config) return false;
     config.enabled = status;
-    await db.collection('welcome').doc(guildId).set(config);
+    await db.collection("welcome").doc(guildId).set(config);
     return true;
   }
 
   // --- Warning system methods ---
   async addWarning(guildId, userId, moderatorId, reason) {
-    const warningsRef = db.collection('warnings').doc(`${guildId}_${userId}`);
+    const warningsRef = db.collection("warnings").doc(`${guildId}_${userId}`);
     const doc = await warningsRef.get();
     let userWarnings = doc.exists ? doc.data().warnings || [] : [];
     const warning = {
@@ -55,12 +62,15 @@ class EconomyManager {
   }
 
   async getWarnings(guildId, userId) {
-    const doc = await db.collection('warnings').doc(`${guildId}_${userId}`).get();
+    const doc = await db
+      .collection("warnings")
+      .doc(`${guildId}_${userId}`)
+      .get();
     return doc.exists ? doc.data().warnings || [] : [];
   }
 
   async removeWarning(guildId, userId, warningId) {
-    const warningsRef = db.collection('warnings').doc(`${guildId}_${userId}`);
+    const warningsRef = db.collection("warnings").doc(`${guildId}_${userId}`);
     const doc = await warningsRef.get();
     let userWarnings = doc.exists ? doc.data().warnings || [] : [];
     const initialLength = userWarnings.length;
@@ -73,7 +83,7 @@ class EconomyManager {
   }
 
   async clearWarnings(guildId, userId) {
-    const warningsRef = db.collection('warnings').doc(`${guildId}_${userId}`);
+    const warningsRef = db.collection("warnings").doc(`${guildId}_${userId}`);
     const doc = await warningsRef.get();
     const userWarnings = doc.exists ? doc.data().warnings || [] : [];
     const count = userWarnings.length;
@@ -89,42 +99,42 @@ class EconomyManager {
 
   // --- Admin role management ---
   async getAdminRoles() {
-    const doc = await db.collection('config').doc('admin').get();
+    const doc = await db.collection("config").doc("admin").get();
     return doc.exists ? doc.data().adminRoles || [] : [];
   }
 
   async getDisplayRoleId() {
-    const doc = await db.collection('config').doc('admin').get();
-    return doc.exists ? doc.data().displayRoleId || '' : '';
+    const doc = await db.collection("config").doc("admin").get();
+    return doc.exists ? doc.data().displayRoleId || "" : "";
   }
 
   async setDisplayRoleId(roleId) {
-    const doc = await db.collection('config').doc('admin').get();
+    const doc = await db.collection("config").doc("admin").get();
     const data = doc.exists ? doc.data() : {};
     data.displayRoleId = roleId;
-    await db.collection('config').doc('admin').set(data, { merge: true });
+    await db.collection("config").doc("admin").set(data, { merge: true });
     return roleId;
   }
 
   async addAdminRole(roleId) {
-    const doc = await db.collection('config').doc('admin').get();
+    const doc = await db.collection("config").doc("admin").get();
     const data = doc.exists ? doc.data() : {};
     let adminRoles = data.adminRoles || [];
     if (!adminRoles.includes(roleId)) {
       adminRoles.push(roleId);
       data.adminRoles = adminRoles;
-      await db.collection('config').doc('admin').set(data, { merge: true });
+      await db.collection("config").doc("admin").set(data, { merge: true });
     }
     return adminRoles;
   }
 
   async removeAdminRole(roleId) {
-    const doc = await db.collection('config').doc('admin').get();
+    const doc = await db.collection("config").doc("admin").get();
     const data = doc.exists ? doc.data() : {};
     let adminRoles = data.adminRoles || [];
     adminRoles = adminRoles.filter((id) => id !== roleId);
     data.adminRoles = adminRoles;
-    await db.collection('config').doc('admin').set(data, { merge: true });
+    await db.collection("config").doc("admin").set(data, { merge: true });
     return adminRoles;
   }
 
@@ -139,22 +149,27 @@ class EconomyManager {
   // --- User balance operations ---
   async getBalance(userId, username = null) {
     if (username) await this.storeUsername(userId, username);
-    const doc = await db.collection('users').doc(userId).get();
-    return doc.exists && doc.data().balance !== undefined ? doc.data().balance : 0;
+    const doc = await db.collection("users").doc(userId).get();
+    return doc.exists && doc.data().balance !== undefined
+      ? doc.data().balance
+      : 0;
   }
 
   async setBalance(userId, amount, username = null) {
     if (username) await this.storeUsername(userId, username);
-    await db.collection('users').doc(userId).set({ balance: amount }, { merge: true });
+    await db
+      .collection("users")
+      .doc(userId)
+      .set({ balance: amount }, { merge: true });
     return amount;
   }
 
   async storeUsername(userId, username) {
-    await db.collection('users').doc(userId).set({ username }, { merge: true });
+    await db.collection("users").doc(userId).set({ username }, { merge: true });
   }
 
   async getUsername(userId) {
-    const doc = await db.collection('users').doc(userId).get();
+    const doc = await db.collection("users").doc(userId).get();
     return doc.exists ? doc.data().username : null;
   }
 
@@ -174,9 +189,16 @@ class EconomyManager {
     return newBalance;
   }
 
-  async transferBalance(senderId, receiverId, amount, senderUsername = null, receiverUsername = null) {
+  async transferBalance(
+    senderId,
+    receiverId,
+    amount,
+    senderUsername = null,
+    receiverUsername = null
+  ) {
     if (senderUsername) await this.storeUsername(senderId, senderUsername);
-    if (receiverUsername) await this.storeUsername(receiverId, receiverUsername);
+    if (receiverUsername)
+      await this.storeUsername(receiverId, receiverUsername);
     const senderBalance = await this.getBalance(senderId);
     if (senderBalance < amount) return false;
     await this.removeBalance(senderId, amount);
@@ -186,30 +208,55 @@ class EconomyManager {
 
   // --- Work and rewards ---
   async getLastDaily(userId) {
-    const doc = await db.collection('users').doc(userId).get();
-    return doc.exists && doc.data().lastDaily !== undefined ? doc.data().lastDaily : 0;
+    const doc = await db.collection("users").doc(userId).get();
+    return doc.exists && doc.data().lastDaily !== undefined
+      ? doc.data().lastDaily
+      : 0;
   }
 
   async setLastDaily(userId, timestamp, username = null) {
     if (username) await this.storeUsername(userId, username);
-    await db.collection('users').doc(userId).set({ lastDaily: timestamp }, { merge: true });
+
+    // Create a formatted date string for better readability in Firebase
+    const formattedDate = new Date(timestamp).toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      timeZoneName: "short",
+    });
+
+    await db.collection("users").doc(userId).set(
+      {
+        lastDaily: timestamp,
+        lastDailyFormatted: formattedDate,
+      },
+      { merge: true }
+    );
     return timestamp;
   }
 
   async getLastWork(userId) {
-    const doc = await db.collection('users').doc(userId).get();
-    return doc.exists && doc.data().lastWork !== undefined ? doc.data().lastWork : 0;
+    const doc = await db.collection("users").doc(userId).get();
+    return doc.exists && doc.data().lastWork !== undefined
+      ? doc.data().lastWork
+      : 0;
   }
 
   async setLastWork(userId, timestamp, username = null) {
     if (username) await this.storeUsername(userId, username);
-    await db.collection('users').doc(userId).set({ lastWork: timestamp }, { merge: true });
+    await db
+      .collection("users")
+      .doc(userId)
+      .set({ lastWork: timestamp }, { merge: true });
     return timestamp;
   }
 
   // --- Shop and inventory ---
   async getInventory(userId) {
-    const doc = await db.collection('users').doc(userId).get();
+    const doc = await db.collection("users").doc(userId).get();
     return doc.exists && doc.data().inventory ? doc.data().inventory : [];
   }
 
@@ -217,49 +264,52 @@ class EconomyManager {
     if (username) await this.storeUsername(userId, username);
     const inventory = await this.getInventory(userId);
     inventory.push(itemId);
-    await db.collection('users').doc(userId).set({ inventory }, { merge: true });
+    await db
+      .collection("users")
+      .doc(userId)
+      .set({ inventory }, { merge: true });
     return inventory;
   }
 
   async getShopItems() {
-    const doc = await db.collection('shop').doc('items').get();
+    const doc = await db.collection("shop").doc("items").get();
     return doc.exists && doc.data().items ? doc.data().items : [];
   }
 
   async addShopItem(name, price, description) {
-    const doc = await db.collection('shop').doc('items').get();
+    const doc = await db.collection("shop").doc("items").get();
     let items = doc.exists && doc.data().items ? doc.data().items : [];
     const itemId = Date.now().toString();
     const newItem = { id: itemId, name, price, description };
     items.push(newItem);
-    await db.collection('shop').doc('items').set({ items });
+    await db.collection("shop").doc("items").set({ items });
     return newItem;
   }
 
   async removeShopItem(itemId) {
-    const doc = await db.collection('shop').doc('items').get();
+    const doc = await db.collection("shop").doc("items").get();
     let items = doc.exists && doc.data().items ? doc.data().items : [];
     const itemIndex = items.findIndex((item) => item.id === itemId);
     if (itemIndex === -1) return { removed: false, item: null };
     const removedItem = items[itemIndex];
     items.splice(itemIndex, 1);
-    await db.collection('shop').doc('items').set({ items });
+    await db.collection("shop").doc("items").set({ items });
     return { removed: true, item: removedItem };
   }
 
   async removeAllShopItems() {
-    const doc = await db.collection('shop').doc('items').get();
+    const doc = await db.collection("shop").doc("items").get();
     let items = doc.exists && doc.data().items ? doc.data().items : [];
     const count = items.length;
-    await db.collection('shop').doc('items').set({ items: [] });
+    await db.collection("shop").doc("items").set({ items: [] });
     return count;
   }
 
   // --- Leaderboard ---
   async getLeaderboard(limit = 10) {
-    const usersSnap = await db.collection('users').get();
+    const usersSnap = await db.collection("users").get();
     const users = [];
-    usersSnap.forEach(doc => {
+    usersSnap.forEach((doc) => {
       const data = doc.data();
       if (data.balance !== undefined) {
         users.push({
