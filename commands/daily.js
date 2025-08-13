@@ -33,10 +33,26 @@ module.exports = {
     const lastDaily = await economy.getLastDaily(userId);
     const now = Date.now();
 
+    // Debug logging for cooldown check
+    console.log(`[DEBUG] Daily command for user ${userId}:`, {
+      lastDaily,
+      now,
+      timeDifference: now - lastDaily,
+      cooldown: COOLDOWN,
+      isOnCooldown: lastDaily && now - lastDaily < COOLDOWN,
+    });
+
     // Check if user is on cooldown
     if (lastDaily && now - lastDaily < COOLDOWN) {
       const timeLeft = COOLDOWN - (now - lastDaily);
       const formattedTime = formatTimeRemaining(timeLeft);
+
+      console.log(`[DEBUG] User on cooldown, time left:`, {
+        timeLeft,
+        formattedTime,
+        hours: Math.floor(timeLeft / (60 * 60 * 1000)),
+        minutes: Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000)),
+      });
 
       const embed = new EmbedBuilder()
         .setColor("#ff0000")
@@ -49,16 +65,17 @@ module.exports = {
       return interaction.editReply({ embeds: [embed] });
     }
 
+    console.log(`[DEBUG] User can claim daily reward, proceeding...`);
+
     // Random daily reward between 1000-3000 (matching web component)
     const dailyAmount = Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
 
-    // Add reward and update last daily timestamp using serverTimestamp for consistency
-    // This ensures compatibility with the web component which also uses serverTimestamp
+    // Add reward and update last daily timestamp
+    // Temporarily using Date.now() to test cooldown functionality
     const newBalance = await economy.addBalance(userId, dailyAmount);
-    await economy.setLastDaily(
-      userId,
-      admin.firestore.FieldValue.serverTimestamp()
-    );
+    await economy.setLastDaily(userId, now);
+
+    console.log(`[DEBUG] Stored lastDaily timestamp:`, now);
 
     // Store the username in the database for the leaderboard
     await economy.storeUsername(userId, interaction.user.username);
