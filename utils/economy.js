@@ -215,18 +215,44 @@ class EconomyManager {
 
     const lastDaily = doc.data().lastDaily;
 
+    // Debug logging
+    console.log(`[DEBUG] getLastDaily for user ${userId}:`, {
+      lastDaily,
+      type: typeof lastDaily,
+      hasToMillis: lastDaily && typeof lastDaily.toMillis === "function",
+      hasSeconds: lastDaily && lastDaily.seconds,
+      isNumber: typeof lastDaily === "number",
+    });
+
     // Handle both Firestore Timestamps and regular timestamps
     if (lastDaily && typeof lastDaily.toMillis === "function") {
       // Firestore Timestamp - convert to milliseconds
-      return lastDaily.toMillis();
+      const millis = lastDaily.toMillis();
+      console.log(
+        `[DEBUG] Converted Firestore Timestamp to milliseconds:`,
+        millis
+      );
+      return millis;
     } else if (lastDaily && typeof lastDaily === "number") {
       // Regular timestamp in milliseconds
+      console.log(
+        `[DEBUG] Using regular timestamp in milliseconds:`,
+        lastDaily
+      );
       return lastDaily;
     } else if (lastDaily && lastDaily.seconds) {
       // Firestore Timestamp with seconds property
-      return lastDaily.seconds * 1000;
+      const millis = lastDaily.seconds * 1000;
+      console.log(`[DEBUG] Converted seconds to milliseconds:`, millis);
+      return millis;
+    } else if (lastDaily && lastDaily._seconds) {
+      // Alternative Firestore Timestamp format
+      const millis = lastDaily._seconds * 1000;
+      console.log(`[DEBUG] Converted _seconds to milliseconds:`, millis);
+      return millis;
     }
 
+    console.log(`[DEBUG] No valid timestamp found, returning 0`);
     return 0;
   }
 
