@@ -70,12 +70,15 @@ module.exports = {
     // Random daily reward between 1000-3000 (matching web component)
     const dailyAmount = Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
 
-    // Add reward and update last daily timestamp
-    // Temporarily using Date.now() to test cooldown functionality
+    // Add reward and update last daily timestamp using serverTimestamp for consistency
+    // This ensures compatibility with the web component which also uses serverTimestamp
     const newBalance = await economy.addBalance(userId, dailyAmount);
-    await economy.setLastDaily(userId, now);
+    await economy.setLastDaily(
+      userId,
+      admin.firestore.FieldValue.serverTimestamp()
+    );
 
-    console.log(`[DEBUG] Stored lastDaily timestamp:`, now);
+    console.log(`[DEBUG] Stored lastDaily timestamp using serverTimestamp`);
 
     // Store the username in the database for the leaderboard
     await economy.storeUsername(userId, interaction.user.username);
