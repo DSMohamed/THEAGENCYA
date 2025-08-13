@@ -209,9 +209,13 @@ class EconomyManager {
   // --- Work and rewards ---
   async getLastDaily(userId) {
     const doc = await db.collection("users").doc(userId).get();
-    return doc.exists && doc.data().lastDaily !== undefined
-      ? doc.data().lastDaily
-      : 0;
+    const lastDaily =
+      doc.exists && doc.data().lastDaily ? doc.data().lastDaily : null;
+    if (!lastDaily) return 0;
+
+    // Parse the formatted date string back to timestamp
+    const date = new Date(lastDaily);
+    return date.getTime();
   }
 
   async setLastDaily(userId, timestamp, username = null) {
@@ -230,8 +234,7 @@ class EconomyManager {
 
     await db.collection("users").doc(userId).set(
       {
-        lastDaily: timestamp,
-        lastDailyFormatted: formattedDate,
+        lastDaily: formattedDate,
       },
       { merge: true }
     );
