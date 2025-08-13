@@ -207,45 +207,57 @@ class EconomyManager {
   }
 
   // --- Work and rewards ---
+  // getLastDaily handles both Firestore Timestamps (from web component) and regular timestamps (from Discord bot)
+  // Converts all to milliseconds for consistent comparison
   async getLastDaily(userId) {
     const doc = await db.collection("users").doc(userId).get();
-    const lastDaily =
-      doc.exists && doc.data().lastDaily ? doc.data().lastDaily : null;
-    if (!lastDaily) return 0;
+    if (!doc.exists || doc.data().lastDaily === undefined) return 0;
 
-    // Parse the formatted date string back to timestamp
-    const date = new Date(lastDaily);
-    return date.getTime();
+    const lastDaily = doc.data().lastDaily;
+
+    // Handle both Firestore Timestamps and regular timestamps
+    if (lastDaily && typeof lastDaily.toMillis === "function") {
+      // Firestore Timestamp - convert to milliseconds
+      return lastDaily.toMillis();
+    } else if (lastDaily && typeof lastDaily === "number") {
+      // Regular timestamp in milliseconds
+      return lastDaily;
+    } else if (lastDaily && lastDaily.seconds) {
+      // Firestore Timestamp with seconds property
+      return lastDaily.seconds * 1000;
+    }
+
+    return 0;
   }
 
   async setLastDaily(userId, timestamp, username = null) {
     if (username) await this.storeUsername(userId, username);
-
-    // Create a formatted date string for better readability in Firebase
-    const formattedDate = new Date(timestamp).toLocaleString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      second: "2-digit",
-      timeZoneName: "short",
-    });
-
-    await db.collection("users").doc(userId).set(
-      {
-        lastDaily: formattedDate,
-      },
-      { merge: true }
-    );
+    await db
+      .collection("users")
+      .doc(userId)
+      .set({ lastDaily: timestamp }, { merge: true });
     return timestamp;
   }
 
   async getLastWork(userId) {
     const doc = await db.collection("users").doc(userId).get();
-    return doc.exists && doc.data().lastWork !== undefined
-      ? doc.data().lastWork
-      : 0;
+    if (!doc.exists || doc.data().lastWork === undefined) return 0;
+
+    const lastWork = doc.data().lastWork;
+
+    // Handle both Firestore Timestamps and regular timestamps
+    if (lastWork && typeof lastWork.toMillis === "function") {
+      // Firestore Timestamp - convert to milliseconds
+      return lastWork.toMillis();
+    } else if (lastWork && typeof lastWork === "number") {
+      // Regular timestamp in milliseconds
+      return lastWork;
+    } else if (lastWork && lastWork.seconds) {
+      // Firestore Timestamp with seconds property
+      return lastWork.seconds * 1000;
+    }
+
+    return 0;
   }
 
   async setLastWork(userId, timestamp, username = null) {
